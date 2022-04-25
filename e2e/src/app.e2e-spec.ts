@@ -8,9 +8,9 @@ describe('workspace-project App', () => {
     page = new AppPage();
   });
 
-  it('manoj run codebuild', () => {
+  it('newfile', () => {
     page.navigateTo();
-    expect(page.getTitleText()).toEqual('manoj run codebuild');
+    expect(page.getTitleText()).toEqual('pipeline create ');
   });
 
   afterEach(async () => {
