@@ -1,5 +1,5 @@
 # Base image
-FROM public.ecr.aws/c2b4r4d4/angularrepository/ubuntu:18.04
+FROM public.ecr.aws/c2b4r4d4/angularrepository
 RUN mkdir /usr/local/src/hello-angular/
 WORKDIR /usr/src/hello-angular
 COPY . .
