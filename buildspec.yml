@@ -1,1 +1,85 @@
+version: 0.2
 
+phases:
+
+  pre_build:
+
+    commands:
+
+      - "echo Logging in to Docker Hub..."
+
+      - "echo Logging in to Amazon ECR..."
+
+      - aws --version
+
+      - name=angularrepository
+
+      - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/c2b4r4d4
+
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
+
+    
+
+  build:
+
+    commands:
+
+      - "echo Build started on `date`"
+
+      - "echo Building the Docker image..."
+
+      - docker build -t angularrepository .
+
+      - echo $CODEBUILD_BUILD_NUMBER
+
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
+
+      - docker tag angularrepository:latest public.ecr.aws/c2b4r4d4/angularrepository:$CODEBUILD_BUILD_NUMBER
+
+      - ImageURI=$(cat imageDetail.json | jq -r '.ImageURI')
+
+      - printf '[{"name":"angularrepository","imageUri":"image_URI"}]' > demotask.json
+
+      - sed -i -e "s|CONTAINER_NAME|$ContainerName|g" demotask.json
+
+      - sed -i -e "s|IMAGE_URI|$ImageURI|g" demotask.json
+
+      - cat demotask.json
+
+ 
+
+  post_build:
+
+    commands:
+
+      - echo Build completed on `date`
+
+      - echo Pushing the Docker images...
+
+      - echo $CODEBUILD_BUILD_NUMBER
+
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
+
+      - docker push public.ecr.aws/c2b4r4d4/angularrepository:$CODEBUILD_BUILD_NUMBER
+
+      - echo Writing image definitions file...
+
+      - printf '[{"name":"angularrepository","imageUri":"%s"}]'   public.ecr.aws/c2b4r4d4/angularrepository:$CODEBUILD_BUILD_NUMBER > demotask.json
+
+      - cat demotask.json
+
+      - echo Start post_build...
+
+artifacts:
+
+  files:
+
+    - '**/*'
+
+    - imageDetail.json
+
+    - demotask.json
+
+  discard-paths: no
